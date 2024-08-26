@@ -67,10 +67,16 @@ func main() {
 	// server status
 	mux.HandleFunc("GET /v1/healthz", cfg.Healhtz)
 	mux.HandleFunc("GET /v1/err", cfg.Err)
+	// users
 	mux.HandleFunc("POST /v1/users", cfg.CreateUser)
 	mux.HandleFunc("GET /v1/users", cfg.MiddlewareAuth(cfg.GetUser))
+	// feeds
 	mux.HandleFunc("POST /v1/feeds", cfg.MiddlewareAuth(cfg.CreateFeed))
 	mux.HandleFunc("GET /v1/feeds", cfg.GetAllFeeds)
+	// feeds follows
+	mux.HandleFunc("POST /v1/feed_follows", cfg.MiddlewareAuth(cfg.CreateFeedFollow))
+	mux.HandleFunc("DELETE /v1/feed_follows/{feedFollowID}", cfg.MiddlewareAuth(cfg.DeleteFeedFollow))
+	mux.HandleFunc("GET /v1/feed_follows", cfg.MiddlewareAuth(cfg.GetFollowsFeeds))
 
 	// server
 	srv := &http.Server{

@@ -5,6 +5,3 @@ RETURNING *;
 
 -- name: GetFeeds :many
 SELECT * FROM feeds;
-
--- name: GetFeedsByUser :many
-SELECT * FROM feeds WHERE user_id = $1;

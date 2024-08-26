@@ -26,6 +26,10 @@ func (cfg *ApiConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 		Name string `json:"name"`
 		URL  string `json:"url"`
 	}
+	type response struct {
+		Feed       models.Feed       `json:"feed"`
+		FeedFollow models.FeedFollow `json:"feed_follow"`
+	}
 
 	param := parameters{}
 
@@ -67,14 +71,35 @@ func (cfg *ApiConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 		return
 	}
 
+	// follow said feed
+	dbFeedFollow, err := cfg.DB.CreateFeedFollow(
+		r.Context(),
+		database.CreateFeedFollowParams{
+			ID:        uuid.New(),
+			CreatedAt: currentTime,
+			UpdatedAt: currentTime,
+			UserID:    user.ID,
+			FeedID:    feed.ID,
+		},
+	)
+
 	if cfg.Debug {
 		log.Printf(
 			"successfully recorded feed: %s with URL %v, with UUID %s at %v. For user %v, uuid %v",
 			feed.Name, feed.Url, feed.ID, feed.CreatedAt, user.Name, user.ID,
 		)
+		log.Printf(
+			"feed follow uuid %v for user %s and url %s (%s)",
+			dbFeedFollow.ID, user.Name, feed.Name, feed.Url,
+		)
 	}
 
-	utils.RespondWithJSON(w, http.StatusCreated, models.DBFeedToFeed(feed))
+	res := response{
+		Feed:       models.DBFeedToFeed(feed),
+		FeedFollow: models.DBFeedFollowToFeedFollow(dbFeedFollow),
+	}
+
+	utils.RespondWithJSON(w, http.StatusCreated, res)
 }
 
 func (cfg *ApiConfig) GetAllFeeds(w http.ResponseWriter, r *http.Request) {
