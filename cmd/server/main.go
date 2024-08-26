@@ -1,39 +1,58 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/MazzMS/go-rss/internal/config"
+	_ "github.com/lib/pq"
+
+	"github.com/MazzMS/go-rss/internal/database"
 	"github.com/MazzMS/go-rss/internal/handlers"
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	// initialize vars
-	var cfg config.ApiConfig
-	// wrapper function to pass config
-	wrapper := func(handler func(http.ResponseWriter, *http.Request, *config.ApiConfig)) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			handler(w, r, &cfg)
-		}
-	}
-
-	// check if debug
-	debug := flag.Bool("debug", false, "Enable debug mode")
-	flag.Parse()
-	cfg.Debug = *debug
-
+	// === API CONFIG STRUCT === 
 	// load .env
 	err := godotenv.Load("../../.env")
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// check if debug
+	debug := flag.Bool("debug", false, "Enable debug mode")
+	flag.Parse()
+
 	// get port
 	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("PORT is not found in the environment")
+	}
+
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		log.Fatal("DB_URL is not found in the environment")
+	}
+
+	// get db
+	db, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// get queries
+	dbQueries := database.New(db)
+
+	cfg := handlers.ApiConfig{
+		DB: dbQueries,
+		Debug: *debug,
+	}
+
+	cfg.DB = dbQueries
+
 
 	if cfg.Debug {
 		log.Println("Starting go-rss")
@@ -41,12 +60,14 @@ func main() {
 	}
 
 	// === HANDLERS ===
+
 	// config mux
 	mux := http.NewServeMux()
 
 	// server status
-	mux.HandleFunc("GET /v1/healthz", wrapper(handlers.Healthz))
-	mux.HandleFunc("GET /v1/err", wrapper(handlers.Err))
+	mux.HandleFunc("GET /v1/healthz", cfg.Healhtz)
+	mux.HandleFunc("GET /v1/err", cfg.Err)
+	mux.HandleFunc("POST /v1/users", cfg.Users)
 
 	// server
 	srv := &http.Server{

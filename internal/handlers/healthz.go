@@ -4,12 +4,11 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/MazzMS/go-rss/internal/config"
 	"github.com/MazzMS/go-rss/internal/utils"
 )
 
-func Healthz(w http.ResponseWriter, r *http.Request, config *config.ApiConfig) {
-	if config.Debug {
+func (cfg *ApiConfig) Healhtz(w http.ResponseWriter, r *http.Request) {
+	if cfg.Debug {
 		log.Println("CALLING HEALTHZ")
 		log.Println()
 		defer log.Println("END OF HEALTHZ")
