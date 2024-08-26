@@ -68,7 +68,9 @@ func main() {
 	mux.HandleFunc("GET /v1/healthz", cfg.Healhtz)
 	mux.HandleFunc("GET /v1/err", cfg.Err)
 	mux.HandleFunc("POST /v1/users", cfg.CreateUser)
-	mux.HandleFunc("GET /v1/users", cfg.GetUser)
+	mux.HandleFunc("GET /v1/users", cfg.MiddlewareAuth(cfg.GetUser))
+	mux.HandleFunc("POST /v1/feeds", cfg.MiddlewareAuth(cfg.CreateFeed))
+	mux.HandleFunc("GET /v1/feeds", cfg.GetAllFeeds)
 
 	// server
 	srv := &http.Server{
