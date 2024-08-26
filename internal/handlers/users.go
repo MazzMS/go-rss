@@ -7,12 +7,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/MazzMS/go-rss/internal/auth"
 	"github.com/MazzMS/go-rss/internal/database"
 	"github.com/MazzMS/go-rss/internal/utils"
 	"github.com/google/uuid"
 )
 
-func (cfg *ApiConfig) Users(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiConfig) CreateUser(w http.ResponseWriter, r *http.Request) {
 	if cfg.Debug {
 		log.Println("CALLING USER CREATION")
 		log.Println()
@@ -65,4 +66,39 @@ func (cfg *ApiConfig) Users(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.RespondWithJSON(w, 200, user)
+}
+
+func (cfg *ApiConfig) GetUser(w http.ResponseWriter, r *http.Request) {
+	if cfg.Debug {
+		log.Println("CALLING USER READING")
+		log.Println()
+		defer log.Println("END OF USER READING")
+		defer log.Println()
+	}
+
+	// get apiKey
+	apiKey, err := auth.GetAPIKey(r.Header)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, fmt.Sprintf("Auth error: %v", err))
+		return
+	}
+	if cfg.Debug {
+		log.Printf("ApiKey: %s", apiKey)
+	}
+
+	// get user
+	user, err := cfg.DB.GetUserByAPIKey(
+		r.Context(),
+		apiKey,
+	)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, fmt.Sprintf("could not find user: %v", err))
+		return
+	}
+
+	if cfg.Debug {
+		log.Printf("find user %v, with uuid %v", user.Name, user.ID)
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, user)
 }

@@ -67,7 +67,8 @@ func main() {
 	// server status
 	mux.HandleFunc("GET /v1/healthz", cfg.Healhtz)
 	mux.HandleFunc("GET /v1/err", cfg.Err)
-	mux.HandleFunc("POST /v1/users", cfg.Users)
+	mux.HandleFunc("POST /v1/users", cfg.CreateUser)
+	mux.HandleFunc("GET /v1/users", cfg.GetUser)
 
 	// server
 	srv := &http.Server{
