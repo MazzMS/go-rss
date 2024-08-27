@@ -6,11 +6,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	_ "github.com/lib/pq"
 
 	"github.com/MazzMS/go-rss/internal/database"
 	"github.com/MazzMS/go-rss/internal/handlers"
+	"github.com/MazzMS/go-rss/internal/scraper"
 	"github.com/joho/godotenv"
 )
 
@@ -59,6 +61,9 @@ func main() {
 		log.Printf("%s will be used as port", port)
 	}
 
+	// start scrapping
+	go scraper.StartScraping(cfg.DB, 10, time.Minute)
+
 	// === HANDLERS ===
 
 	// config mux
@@ -77,6 +82,8 @@ func main() {
 	mux.HandleFunc("POST /v1/feed_follows", cfg.MiddlewareAuth(cfg.CreateFeedFollow))
 	mux.HandleFunc("DELETE /v1/feed_follows/{feedFollowID}", cfg.MiddlewareAuth(cfg.DeleteFeedFollow))
 	mux.HandleFunc("GET /v1/feed_follows", cfg.MiddlewareAuth(cfg.GetFollowsFeeds))
+	// posts
+	mux.HandleFunc("GET /v1/posts", cfg.MiddlewareAuth(cfg.GetPosts))
 
 	// server
 	srv := &http.Server{

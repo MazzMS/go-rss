@@ -27,8 +27,8 @@ func DBFeedFollowToFeedFollow(dbFF database.FeedsFollow) FeedFollow {
 
 func DBFeedsFollowsToFeedsFollows(dbFFs []database.FeedsFollow) []FeedFollow {
 	feedsFollows := make([]FeedFollow, len(dbFFs))
-	for _, dbFF := range dbFFs {
-		feedsFollows = append(feedsFollows, DBFeedFollowToFeedFollow(dbFF))
+	for i, dbFF := range dbFFs {
+		feedsFollows[i] = DBFeedFollowToFeedFollow(dbFF)
 	}
 	return feedsFollows
 }

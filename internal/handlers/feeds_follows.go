@@ -94,7 +94,7 @@ func (cfg *ApiConfig) DeleteFeedFollow(w http.ResponseWriter, r *http.Request, d
 		log.Printf("user %s, uuid %s stopped following a feed", dbUser.Name, dbUser.ID)
 	}
 
-	utils.RespondWithJSON(w, http.StatusNoContent, nil)
+	utils.RespondWithJSON(w, http.StatusNoContent, struct{}{})
 }
 
 func (cfg *ApiConfig) GetFollowsFeeds(w http.ResponseWriter, r *http.Request, dbUser database.User) {
